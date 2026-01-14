@@ -32,6 +32,9 @@ class LLMResponse(BaseModel):
     content: str | None = None
     reasoning_content: str | None = None  # 思考链内容 (增量)
     
+    # 状态标识
+    is_delta: bool = Field(default=False, description="是否为流式增量碎片")
+    
     # --- 用于后期分析的最终结果 (仅在流式最后一帧或非流式中提供) ---
     final_content: str | None = None
     final_reasoning: str | None = None

@@ -42,11 +42,16 @@ class BaseLLM(ABC):
     async def stream_chat(
         self, 
         messages: list[dict[str, Any]], 
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict = "auto",
         **kwargs
     ) -> AsyncGenerator[LLMResponse, None]:
         """
         轨道 3：流式输出 (前端展示)
-        适用于：打字机效果的实时聊天。
+        适用于：打字机效果的实时聊天，同样支持流式过程中的工具调用。
         返回：包含增量内容或元数据的 LLMResponse 块
         """
         pass
+
+    # 轨道 4 (规划中)：流式结构化输出 (stream_structured_chat)
+    # 目前考虑到实现复杂度与依赖，暂时不作为 Base 强制要求。
