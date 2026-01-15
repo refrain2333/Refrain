@@ -8,15 +8,29 @@ from rich.panel import Panel
 from rich.markdown import Markdown
 
 # 导入子命令模块
-from .commands import model
+from .commands import model, chat
 
 app = typer.Typer(help="Refrain: Python AI Code Assistant")
 console = Console()
 
 # ========== 子命令注册中心 ==========
 app.add_typer(model.app, name="model", help="模型管理")
+app.add_typer(chat.app, name="chat", help="交互式聊天")
 # app.add_typer(config.app, name="config", help="配置管理")  # 未来
 # app.add_typer(project.app, name="project", help="项目分析")  # 未来
+
+
+@app.callback(invoke_without_command=True)
+def main_callback(ctx: typer.Context):
+    """
+    Refrain: Python AI Code Assistant
+    默认进入交互式聊天模式
+    """
+    if ctx.invoked_subcommand is None:
+        from .commands.chat import ChatSession
+        import asyncio
+        session = ChatSession()
+        asyncio.run(session.run())
 
 
 @app.command()

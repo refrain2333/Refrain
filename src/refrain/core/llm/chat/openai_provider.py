@@ -11,7 +11,7 @@ from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
 from pydantic import BaseModel
 
-from refrain.core.config import settings
+from refrain.core.config import settings, get_api_key_from_keyring
 from refrain.core.logger import log
 from .base import BaseLLM
 from .schemas import LLMResponse, ToolCall
@@ -28,11 +28,19 @@ class OpenAIProvider(BaseLLM):
         api_key_env: str | None = None,
         **kwargs  # 接收额外参数，防止工厂模式透传报错
     ):
-        # 优先级：直接传入的 api_key > 指定的 api_key_env > 默认 settings.OPENAI_API_KEY
+        # 优先级：直接传入的 api_key > 指定的 api_key_env > 系统 Keyring > 默认 settings.OPENAI_API_KEY
         actual_api_key = api_key
+        
+        # 1. 尝试环境变量
         if not actual_api_key and api_key_env:
             actual_api_key = getenv(api_key_env)
         
+        # 2. 尝试 Keyring (如果 api_key_env 为空字符串或 "keyring")
+        if not actual_api_key and (not api_key_env or api_key_env == "keyring"):
+            # 使用别名或模型名作为 service ID 进行查找
+            service_id = kwargs.get("name") or default_model or "refrain"
+            actual_api_key = get_api_key_from_keyring(service_id)
+
         self.client = AsyncOpenAI(
             api_key=actual_api_key or settings.OPENAI_API_KEY,
             base_url=base_url or settings.OPENAI_API_BASE,
